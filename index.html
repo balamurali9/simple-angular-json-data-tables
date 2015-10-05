@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="PEAPP">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<title>PE Reports</title>
+		<!-- Bootstrap core CSS -->
+		<link href="assets/css/bootstrap.min.css" rel="stylesheet">
+		<!-- Bootstrap theme -->
+		<link href="assets/css/bootstrap-theme.min.css" rel="stylesheet">
+		<link href="assets/css/font-awesome.css" rel="stylesheet">
+		<link href="assets/css/datepicker.min.css" rel="stylesheet">
+		<style>
+			.circle {
+				width: 25px;
+				height: 25px;
+				line-height: 25px;
+				border-radius: 50%; /* the magic */
+				-moz-border-radius: 50%;
+				-webkit-border-radius: 50%;
+				text-align: center;
+				color: white;
+				font-size: 16px;
+				text-transform: uppercase;
+				font-weight: 700;
+				margin: 0 auto 10px;
+			}
+			.grey {
+				background-color: #cccccc;  
+			}
+			.green {
+				background-color: #16a085;
+			}
+			.red {
+				background-color: #e74c3c;
+			}
+			.sortorder:after {
+				content: '\25b2';
+			}
+			.sortorder.reverse:after {
+				content: '\25bc';
+			}
+		</style>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script src="assets/js/bootstrap.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+		<script src="assets/js/bootstrap-datepicker.min.js"></script>
+		<script>
+			var PEAPP = angular.module('PEAPP', []);
+			PEAPP.controller('PEController', function ($scope, $http){
+			  $http.get('data/25Aug2015_PEReports.json').success(function(data) {
+			    $scope.reportItems = data;
+				$scope.currentPage = 0;
+				$scope.pageSize = 5;
+				$scope.data = [];
+				$scope.numberOfPages=function(){
+					return Math.ceil($scope.data.length/$scope.pageSize);                
+				};
+				for (var i=0; i<50; i++) {
+					$scope.data.push("reportItem "+i);
+				};
+				$scope.submitted = false;
+				$scope.confirm = function() {
+					$scope.submitted = true;
+				};
+				$scope.dummyData = {
+					availableDropNumber: [
+					  {dropNumber: '1'},
+					  {dropNumber: '2'},
+					  {dropNumber: '3'},
+					  {dropNumber: '4'},
+					  {dropNumber: '5'}
+					],
+					availableTestName: [
+					  {testName: 'Longivity Test'},
+					  {testName: 'Burst Test'}
+					],
+					availableSimultaneousUsers: [
+					  {simultaneousUsers: '100'},
+					  {simultaneousUsers: '200'},
+					  {simultaneousUsers: '300'},
+					  {simultaneousUsers: '400'},
+					  {simultaneousUsers: '500'}
+					],
+					availableFilters: [
+					  {filters: 'Functional Issues'},
+					  {filters: 'Performance Issues'},
+					  {filters: 'Passed Simulations'}
+					],
+				};
+				$scope.predicate = 'pillar';
+				$scope.reverse = true;
+				$scope.order = function(predicate) {
+					$scope.reverse = ($scope.predicate === predicate) ? !$scope.reverse : false;
+					$scope.predicate = predicate;
+				};
+			  });
+			  });
+			PEAPP.filter('startFrom', function() {
+				return function(input, start) {
+					if (!input || !input.length) { return; }
+					start = +start; //parse to int
+					return input.slice(start);
+				}
+			});
+		</script>
+		<script>
+		    var data =[];
+			var loadPEdata = function() {
+				$.ajax({
+					url: "data/date.json",
+					method: "GET",
+					dataType: "JSON",
+					contentType: "application/json",
+					success: function(response) {
+						console.log(response);
+						data.push(response);
+					}
+				})
+			}
+		$(function() {
+			$('#datepicker').datepicker({
+				autoclose:true,
+			})
+			$('#datepicker').datepicker().datepicker('update')
+			.load(function() {
+				loadPEdata();
+			})
+			.on("changeDate", function(e){
+				console.log(e.date);
+				$('#datepicker').datepicker('hide');
+				loadPEdata();
+			});
+		});
+		</script>
+	</head>
+	<body ng-controller="PEController">
+		<nav class="navbar navbar-default" role="navigation">
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#">PE Reports</a>
+			</div>
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<div class="col-sm-3 col-md-3">
+				</div>
+				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
+						<ul class="dropdown-menu">
+							<li><a href="#">links</a></li>
+							<li><a href="#">links</a></li>
+							<li><a href="#">links</a></li>
+							<li><a href="#">links</a></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			<!-- /.navbar-collapse -->
+		</nav>
+		<div class="clearfix"></div>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<div class="row" >
+				<form id="myform" ng-submit="confirm()">
+					<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+						<div class="input-group date" id="datepicker">
+							<input class="form-control" type="text">
+							<span style="cursor:pointer;" class="input-group-addon">
+								<span class="glyphicon glyphicon-calendar"></span>
+							</span>
+						</div>
+					</div>
+					<div class="col-xs-12 col-sm-1 col-md-1 col-lg-1">
+						<label class="control-label" for="mySelect">Drop No</label>
+						<div class="clearfix"></div>
+							<select name="mySelect" id="mySelect" ng-options="option.dropNumber for option in dummyData.availableDropNumber"  ng-model="a.selectedOption">
+							</select>
+						<div class="clearfix"></div> 
+					</div>
+					<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+						<label class="control-label" for="testName">Test Name</label>
+						<div class="clearfix"></div>
+							<select name="testName" id="testName" ng-options="option.testName for option in dummyData.availableTestName"  ng-model="b.selectedOption">
+							</select>
+						<div class="clearfix"></div>
+					</div>
+					<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+						<label class="control-label" for="simultaneousUsers">Simultaneous Users</label>
+						<div class="clearfix"></div>
+							<select name="simultaneousUsers" id="simultaneousUsers" ng-options="option.simultaneousUsers for option in dummyData.availableSimultaneousUsers"  ng-model="c.selectedOption">
+							</select>
+						<div class="clearfix"></div>
+					</div>
+					<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+						<label class="control-label" for="filters">Filters</label>
+						<div class="clearfix"></div>
+							<select name="filters" id="filters" ng-options="option.filters for option in dummyData.availableFilters"  ng-model="d.selectedOption">
+							</select>
+						<div class="clearfix"></div>
+					</div>
+					<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+						 <input type="submit" class="btn btn-default" value="Submit" form="myform">
+						<p ng-show="submitted">
+							The form was submitted
+						</p>
+					</div>
+				</form>
+				</div>
+			</div>
+		</div>
+		<div class="clearfix"></div>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<div class="clearfix"></div>
+				[ <a href="" ng-click="predicate=''">unsorted</a> ]
+				<div class="clearfix"></div>
+				<table class="table table-bordered">
+					<thead>
+						<tr>
+							<th>
+								<a href="" ng-click="order('pillar')">Pillar</a>
+								<span class="sortorder" ng-show="predicate === 'pillar'" ng-class="{reverse:reverse}"></span>
+							</th>
+							<th>
+								<a href="" ng-click="order('simulation_name')">Simulation</a>
+								<span class="sortorder" ng-show="predicate === 'simulation_name'" ng-class="{reverse:reverse}"></span>
+							</th>
+							<th>
+								<a href="" ng-click="order('ramp_user_count')">Concurrent Users</a>
+								<span class="sortorder" ng-show="predicate === 'ramp_user_count'" ng-class="{reverse:reverse}"></span>
+							</th>
+							<th>
+								<a href="" ng-click="order('build_status')">Status</a>
+								<span class="sortorder" ng-show="predicate === 'build_status'" ng-class="{reverse:reverse}"></span>
+							</th>
+							<th>
+								<a href="" ng-click="order('actual_nintyfive_percentile')">95th Percentile</a>
+								<span class="sortorder" ng-show="predicate === 'actual_nintyfive_percentile'" ng-class="{reverse:reverse}"></span>
+							</th>
+							<th>
+								<a href="" ng-click="order('console_errors')">Issues</a>
+								<span class="sortorder" ng-show="predicate === 'console_errors'" ng-class="{reverse:reverse}"></span>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="reportItem in reportItems | orderBy:predicate:reverse | startFrom:currentPage*pageSize | limitTo:pageSize">
+							<td>{{reportItem.pillar}}</td>
+							<td>{{reportItem.simulation_name}}</td>
+							<td>{{reportItem.ramp_user_count}}</td>
+							<td ng-if="reportItem.build_status == 'FAILURE'"><div class="circle red"></div></td>
+							<td ng-if="reportItem.build_status == 'PASS'"><div class="circle green"></div></td>
+							<td ng-if="reportItem.build_status == 'ABORT'"><div class="circle grey"></div></td>
+							<td>{{reportItem.actual_nintyfive_percentile}}</td>
+							<td>{{reportItem.console_errors}}</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="pull-right">
+					<button class="btn btn-default"  ng-disabled="currentPage == 0" ng-click="currentPage=currentPage-1">
+						Previous
+					</button>
+					{{currentPage+1}}/{{numberOfPages()}}
+					<button class="btn btn-default"  ng-disabled="currentPage >= data.length/pageSize - 1" ng-click="currentPage=currentPage+1">
+						Next
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="clearfix"></div>
+	</body>
+</html>
